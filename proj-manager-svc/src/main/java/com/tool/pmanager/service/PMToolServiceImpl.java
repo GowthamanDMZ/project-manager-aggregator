@@ -39,16 +39,46 @@ public class PMToolServiceImpl implements PMToolService, PMToolConstants {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Autowired
-	private UserRepository userRepository;
+	private ParentTaskRepository parentTaskRepository;
 	
 	@Autowired
 	private ProjectRepository projectRepository;
 	
 	@Autowired
-	private ParentTaskRepository parentTaskRepository;
+	private UserRepository userRepository;
 	
 	@Autowired
 	private TaskRepository taskRepository;
+	
+	
+
+	@Override
+	public GetParentTaskResponse getParentTask() throws PMToolException {
+		// TODO Auto-generated method stub
+		GetParentTaskResponse getParentTaskResponse = new GetParentTaskResponse();
+		List<ParentTaskBO> parentTaskVOList = null;
+		List<ParentTaskComp> parentTaskEntList = null;
+		try {
+			parentTaskEntList = parentTaskRepository.findAll();
+			if(null != parentTaskEntList && !parentTaskEntList.isEmpty()) {
+	        	parentTaskVOList = new ArrayList<>();
+	        	
+	        	for(ParentTaskComp parentTaskEnt : parentTaskEntList) {
+	        		ParentTaskBO parentTask = new ParentTaskBO();
+	        		parentTask.setParentId(parentTaskEnt.getParentId());
+	        		parentTask.setParentTaskName(parentTaskEnt.getParentTask());
+	        		parentTask.setProjectId(null != parentTaskEnt.getProjectEnt() ? parentTaskEnt.getProjectEnt().getProjectId() : 0);
+		        	
+	        		parentTaskVOList.add(parentTask);
+	        	}
+	        }
+	        getParentTaskResponse.setParentTaskVO(parentTaskVOList);
+	        getParentTaskResponse.setStatus("Success");
+		} catch(Exception e) {
+			throw new PMToolException(TECH_ERROR_CODE, TECH_ERROR_MESSAGE, STATUS_500);
+		}
+		return getParentTaskResponse;
+	}
 	
 	@Override
 	public GetTaskResponse viewTask(int projectId) throws PMToolException {
@@ -90,76 +120,8 @@ public class PMToolServiceImpl implements PMToolService, PMToolConstants {
 		}
 		return getTaskResponse;
 	}
-
-	@Override
-	public GetParentTaskResponse getParentTask() throws PMToolException {
-		// TODO Auto-generated method stub
-		GetParentTaskResponse getParentTaskResponse = new GetParentTaskResponse();
-		List<ParentTaskBO> parentTaskVOList = null;
-		List<ParentTaskComp> parentTaskEntList = null;
-		try {
-			parentTaskEntList = parentTaskRepository.findAll();
-			if(null != parentTaskEntList && !parentTaskEntList.isEmpty()) {
-	        	parentTaskVOList = new ArrayList<>();
-	        	
-	        	for(ParentTaskComp parentTaskEnt : parentTaskEntList) {
-	        		ParentTaskBO parentTask = new ParentTaskBO();
-	        		parentTask.setParentId(parentTaskEnt.getParentId());
-	        		parentTask.setParentTaskName(parentTaskEnt.getParentTask());
-	        		parentTask.setProjectId(null != parentTaskEnt.getProjectEnt() ? parentTaskEnt.getProjectEnt().getProjectId() : 0);
-		        	
-	        		parentTaskVOList.add(parentTask);
-	        	}
-	        }
-	        getParentTaskResponse.setParentTaskVO(parentTaskVOList);
-	        getParentTaskResponse.setStatus("Success");
-		} catch(Exception e) {
-			throw new PMToolException(TECH_ERROR_CODE, TECH_ERROR_MESSAGE, STATUS_500);
-		}
-		return getParentTaskResponse;
-	}
 	
-	@Override
-	public GetProjectResponse getProject() throws PMToolException {
-		// TODO Auto-generated method stub
-		GetProjectResponse getProjectResponse = new GetProjectResponse();
-		List<ProjectBO> projectVOList = null;
-		int completedTaskCount = 0;
-		try {
-			List<ProjectComp> projectEntList = projectRepository.findAll();
-			if(null != projectEntList && !projectEntList.isEmpty()) {
-	        	projectVOList = new ArrayList<>();
-	        	
-	        	for(ProjectComp projectEnt : projectEntList) {
-	        		ProjectBO project = new ProjectBO();
-	        		project.setProjectId(projectEnt.getProjectId());
-	        		project.setProject(projectEnt.getProject());
-	        		project.setPriority(projectEnt.getPriority());
-	        		project.setStartDate(PMToolUtil.dateToString(projectEnt.getStartDate()));
-	        		project.setEndDate(PMToolUtil.dateToString(projectEnt.getEndDate()));
-	        		project.setEmpId(null != projectEnt.getUserEnt() ? projectEnt.getUserEnt().getUserId() : 0);
-		        	
-	        		List<TaskComp> taskEntList = getTaskByProjectId(projectEnt.getProjectId());
-	        		if(null != taskEntList && !taskEntList.isEmpty()) {
-	        			for(TaskComp taskEnt : taskEntList) {
-	        				if(null != taskEnt.getStatus() && STATUS_COMPLETED.equalsIgnoreCase(taskEnt.getStatus())) {
-	        					completedTaskCount ++;
-	        				}
-	        			}
-	        			project.setNoOfTask(taskEntList.size());
-	        			project.setNoOfCompletedTask(completedTaskCount);
-	        			completedTaskCount = 0;
-	        		}
-		        	projectVOList.add(project);
-	        	}
-	        }
-			getProjectResponse.setProjectVO(projectVOList);
-			getProjectResponse.setStatus("Success");
-		} catch(Exception e) {
-			throw new PMToolException(TECH_ERROR_CODE, TECH_ERROR_MESSAGE, STATUS_500);
-		}
-		return getProjectResponse;
-	}
+	
 
 	@Override
 	public GetUserResponse getUser() throws PMToolException {
@@ -242,6 +204,48 @@ public class PMToolServiceImpl implements PMToolService, PMToolConstants {
 			throw new PMToolException(TECH_ERROR_CODE, TECH_ERROR_MESSAGE, STATUS_500);
 		}
 		return status;
+	}
+	
+	@Override
+	public GetProjectResponse getProject() throws PMToolException {
+		// TODO Auto-generated method stub
+		GetProjectResponse getProjectResponse = new GetProjectResponse();
+		List<ProjectBO> projectVOList = null;
+		int completedTaskCount = 0;
+		try {
+			List<ProjectComp> projectEntList = projectRepository.findAll();
+			if(null != projectEntList && !projectEntList.isEmpty()) {
+	        	projectVOList = new ArrayList<>();
+	        	
+	        	for(ProjectComp projectEnt : projectEntList) {
+	        		ProjectBO project = new ProjectBO();
+	        		project.setProjectId(projectEnt.getProjectId());
+	        		project.setProject(projectEnt.getProject());
+	        		project.setPriority(projectEnt.getPriority());
+	        		project.setStartDate(PMToolUtil.dateToString(projectEnt.getStartDate()));
+	        		project.setEndDate(PMToolUtil.dateToString(projectEnt.getEndDate()));
+	        		project.setEmpId(null != projectEnt.getUserEnt() ? projectEnt.getUserEnt().getUserId() : 0);
+		        	
+	        		List<TaskComp> taskEntList = getTaskByProjectId(projectEnt.getProjectId());
+	        		if(null != taskEntList && !taskEntList.isEmpty()) {
+	        			for(TaskComp taskEnt : taskEntList) {
+	        				if(null != taskEnt.getStatus() && STATUS_COMPLETED.equalsIgnoreCase(taskEnt.getStatus())) {
+	        					completedTaskCount ++;
+	        				}
+	        			}
+	        			project.setNoOfTask(taskEntList.size());
+	        			project.setNoOfCompletedTask(completedTaskCount);
+	        			completedTaskCount = 0;
+	        		}
+		        	projectVOList.add(project);
+	        	}
+	        }
+			getProjectResponse.setProjectVO(projectVOList);
+			getProjectResponse.setStatus("Success");
+		} catch(Exception e) {
+			throw new PMToolException(TECH_ERROR_CODE, TECH_ERROR_MESSAGE, STATUS_500);
+		}
+		return getProjectResponse;
 	}
 	
 	@Override
