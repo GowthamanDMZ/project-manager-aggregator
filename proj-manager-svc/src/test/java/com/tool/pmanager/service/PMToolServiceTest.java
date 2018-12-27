@@ -1,4 +1,4 @@
-package com.project.manager.service;
+package com.tool.pmanager.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -36,20 +36,21 @@ import com.tool.pmanager.service.PMToolService;
 import com.tool.pmanager.service.PMToolServiceImpl;
 
 @RunWith(SpringRunner.class)
-public class ProjectManagerServiceTest {
+public class PMToolServiceTest {
 	
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	private static final String SUCCESS = "Success";
 	
 	@MockBean
-	private UserRepository userRepository;
-	
-	@MockBean
 	private ProjectRepository projectRepository;
 	
 	@MockBean
 	private ParentTaskRepository parentTaskRepository;
+	
+	@MockBean
+	private UserRepository userRepository;
+	
 	
 	@MockBean
 	private TaskRepository taskRepository;
@@ -68,15 +69,20 @@ public class ProjectManagerServiceTest {
 	@Before
     public void setUp() throws Exception {
 		given(userRepository.findAll()).willReturn(getMockUser());
+		given(taskRepository.findByProjectId(1)).willReturn(getMockTask());
 		given(projectRepository.findAll()).willReturn(getMockProject());
 		given(parentTaskRepository.findAll()).willReturn(getMockParentTask());
-		given(taskRepository.findByProjectId(1)).willReturn(getMockTask());
 		given(projectRepository.findByUserId(1)).willReturn(getMockProjEnt());
 	}
 	
 	@Test
 	public void test_getUserService() throws Exception {
 		assertNotNull(projectManagerService.getUser());
+	}
+	
+	@Test
+	public void test_getTaskService() throws Exception {
+		assertNotNull(projectManagerService.viewTask(1));
 	}
 	
 	@Test
@@ -89,9 +95,17 @@ public class ProjectManagerServiceTest {
 		assertNotNull(projectManagerService.getParentTask());
 	}
 	
+	
 	@Test
-	public void test_getTaskService() throws Exception {
-		assertNotNull(projectManagerService.viewTask(1));
+	public void test_update_addParentTaskService() throws Exception {
+		assertNotNull(projectManagerService.updateParentTask(getMockParentTask_forAdd()));
+		assertEquals(SUCCESS, projectManagerService.updateParentTask(getMockParentTask_forAdd()));
+	}
+	
+	@Test
+	public void test_update_addTaskService() throws Exception {
+		assertNotNull(projectManagerService.updateTask(getMockTask_forAdd()));
+		assertEquals(SUCCESS, projectManagerService.updateTask(getMockTask_forAdd()));
 	}
 	
 	@Test
@@ -106,17 +120,6 @@ public class ProjectManagerServiceTest {
 		assertEquals(SUCCESS, projectManagerService.updateProject(getMockProject_forAdd()));
 	}
 	
-	@Test
-	public void test_update_addParentTaskService() throws Exception {
-		assertNotNull(projectManagerService.updateParentTask(getMockParentTask_forAdd()));
-		assertEquals(SUCCESS, projectManagerService.updateParentTask(getMockParentTask_forAdd()));
-	}
-	
-	@Test
-	public void test_update_addTaskService() throws Exception {
-		assertNotNull(projectManagerService.updateTask(getMockTask_forAdd()));
-		assertEquals(SUCCESS, projectManagerService.updateTask(getMockTask_forAdd()));
-	}
 	
 	@Test
 	public void test_update_deleteUserService() throws Exception {
@@ -149,23 +152,11 @@ public class ProjectManagerServiceTest {
 			UserComp ent = gson.fromJson(new FileReader("mockData/getUserRes.json"), UserComp.class);
 			res.add(ent);
         } catch (Exception e) {
-            logger.error("Exception in ProjectManagerServiceTest getMockUser : " + e);
+            logger.error("Exception occured inProjectManagerServiceTest getMockUser : " + e);
         }
 		return res;
 	}
 
-	private List<ProjectComp> getMockProject() {
-		Gson gson = new Gson();
-		List<ProjectComp> res = new ArrayList<ProjectComp>();
-		try {
-			ProjectComp ent = gson.fromJson(new FileReader("mockData/getProjectRes.json"), ProjectComp.class);
-			res.add(ent);
-        } catch (Exception e) {
-        	logger.error("Exception in ProjectManagerServiceTest getMockProject : " + e);
-        }
-		return res;
-	}
-	
 	private List<ParentTaskComp> getMockParentTask() {
 		Gson gson = new Gson();
 		List<ParentTaskComp> res = new ArrayList<ParentTaskComp>();
@@ -173,10 +164,24 @@ public class ProjectManagerServiceTest {
 			ParentTaskComp ent = gson.fromJson(new FileReader("mockData/getParentTaskRes.json"), ParentTaskComp.class);
 			res.add(ent);
         } catch (Exception e) {
-        	logger.error("Exception in ProjectManagerServiceTest getMockParentTask : " + e);
+        	logger.error("Exception occured inProjectManagerServiceTest getMockParentTask : " + e);
         }
 		return res;
 	}
+	
+	private List<ProjectComp> getMockProject() {
+		Gson gson = new Gson();
+		List<ProjectComp> res = new ArrayList<ProjectComp>();
+		try {
+			ProjectComp ent = gson.fromJson(new FileReader("mockData/getProjectRes.json"), ProjectComp.class);
+			res.add(ent);
+        } catch (Exception e) {
+        	logger.error("Exception occured inProjectManagerServiceTest getMockProject : " + e);
+        }
+		return res;
+	}
+	
+	
 	
 	private List<TaskComp> getMockTask() {
 		Gson gson = new Gson();
@@ -185,18 +190,7 @@ public class ProjectManagerServiceTest {
 			TaskComp ent = gson.fromJson(new FileReader("mockData/getTaskEntRes.json"), TaskComp.class);
 			res.add(ent);
         } catch (Exception e) {
-        	logger.error("Exception in ProjectManagerServiceTest getMockTask : " + e);
-        }
-		return res;
-	}
-	
-	private ProjectComp getMockProjEnt() {
-		Gson gson = new Gson();
-		ProjectComp res = new ProjectComp();
-		try {
-			res = gson.fromJson(new FileReader("mockData/projectEntRes.json"), ProjectComp.class);
-        } catch (Exception e) {
-        	logger.error("Exception in ProjectManagerServiceTest getMockTask : " + e);
+        	logger.error("Exception occured inProjectManagerServiceTest getMockTask : " + e);
         }
 		return res;
 	}
@@ -207,7 +201,7 @@ public class ProjectManagerServiceTest {
 		try {
 			req = gson.fromJson(new FileReader("mockData/addUserReq.json"), GetUserRequest.class);
         } catch (Exception e) {
-        	logger.error("Exception in ProjectManagerServiceTest getMockUser_forAdd : " + e);
+        	logger.error("Exception occured inProjectManagerServiceTest getMockUser_forAdd : " + e);
         }
 		return req;
 	}
@@ -218,9 +212,20 @@ public class ProjectManagerServiceTest {
 		try {
 			req = gson.fromJson(new FileReader("mockData/addProjectReq.json"), GetProjectRequest.class);
         } catch (Exception e) {
-        	logger.error("Exception in ProjectManagerServiceTest getMockProject_forAdd : " + e);
+        	logger.error("Exception occured inProjectManagerServiceTest getMockProject_forAdd : " + e);
         }
 		return req;
+	}
+	
+	private ProjectComp getMockProjEnt() {
+		Gson gson = new Gson();
+		ProjectComp res = new ProjectComp();
+		try {
+			res = gson.fromJson(new FileReader("mockData/projectEntRes.json"), ProjectComp.class);
+        } catch (Exception e) {
+        	logger.error("Exception occured inProjectManagerServiceTest getMockTask : " + e);
+        }
+		return res;
 	}
 	
 	private GetParentTaskRequest getMockParentTask_forAdd() {
@@ -229,7 +234,7 @@ public class ProjectManagerServiceTest {
 		try {
 			req = gson.fromJson(new FileReader("mockData/addParentTaskReq.json"), GetParentTaskRequest.class);
         } catch (Exception e) {
-        	logger.error("Exception in ProjectManagerServiceTest getMockParentTask_forAdd : " + e);
+        	logger.error("Exception occured inProjectManagerServiceTest getMockParentTask_forAdd : " + e);
         }
 		return req;
 	}
@@ -240,7 +245,7 @@ public class ProjectManagerServiceTest {
 		try {
 			req = gson.fromJson(new FileReader("mockData/addTaskReq.json"), GetTaskRequest.class);
         } catch (Exception e) {
-        	logger.error("Exception in ProjectManagerServiceTest getMockTask_forAdd : " + e);
+        	logger.error("Exception occured inProjectManagerServiceTest getMockTask_forAdd : " + e);
         }
 		return req;
 	}
@@ -251,7 +256,7 @@ public class ProjectManagerServiceTest {
 		try {
 			req = gson.fromJson(new FileReader("mockData/deleteUserReq.json"), GetUserRequest.class);
         } catch (Exception e) {
-        	logger.error("Exception in ProjectManagerServiceTest getMockUser_forAdd : " + e);
+        	logger.error("Exception occured inProjectManagerServiceTest getMockUser_forAdd : " + e);
         }
 		return req;
 	}
@@ -262,7 +267,7 @@ public class ProjectManagerServiceTest {
 		try {
 			req = gson.fromJson(new FileReader("mockData/deleteProjectReq.json"), GetProjectRequest.class);
         } catch (Exception e) {
-        	logger.error("Exception in ProjectManagerServiceTest getMockProject_forAdd : " + e);
+        	logger.error("Exception occured inProjectManagerServiceTest getMockProject_forAdd : " + e);
         }
 		return req;
 	} 
@@ -273,7 +278,7 @@ public class ProjectManagerServiceTest {
 		try {
 			req = gson.fromJson(new FileReader("mockData/deleteParentTaskReq.json"), GetParentTaskRequest.class);
         } catch (Exception e) {
-        	logger.error("Exception in ProjectManagerServiceTest getMockParentTask_forAdd : " + e);
+        	logger.error("Exception occured inProjectManagerServiceTest getMockParentTask_forAdd : " + e);
         }
 		return req;
 	}
@@ -284,7 +289,7 @@ public class ProjectManagerServiceTest {
 		try {
 			req = gson.fromJson(new FileReader("mockData/deleteTaskReq.json"), GetTaskRequest.class);
         } catch (Exception e) {
-        	logger.error("Exception in ProjectManagerServiceTest getMockTask_forAdd : " + e);
+        	logger.error("Exception occured inProjectManagerServiceTest getMockTask_forAdd : " + e);
         }
 		return req;
 	}

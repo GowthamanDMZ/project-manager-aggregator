@@ -1,4 +1,4 @@
-package com.project.manager.controller;
+package com.tool.pmanager.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -38,7 +38,7 @@ import com.tool.pmanager.service.PMToolService;
 @SpringBootTest(classes = PMToolBootApplication.class)
 @RunWith(SpringRunner.class)
 @AutoConfigureMockMvc
-public class ProjectManagerControllerTest {
+public class PMToolControllerTest {
 
 	@Autowired
 	private MockMvc mockMvc;
@@ -54,17 +54,20 @@ public class ProjectManagerControllerTest {
 				.andExpect(status().isOk());
 	}
 
+	
+
+	
+	@Test
+	public void test_update_addUser_endpoint() throws Exception {
+		given(service.updateUser(getMockUser_forAdd())).willReturn("Success");
+		this.mockMvc.perform(post("/updateUser").contentType(MediaType.APPLICATION_JSON)
+				.content(createModifyUserJson())).andExpect(status().isOk());
+	}
+	
 	@Test
 	public void test_getProject_endpoint() throws Exception {
 		given(service.getProject()).willReturn(getMockProject());
 		this.mockMvc.perform(get("/getProject").contentType(MediaType.APPLICATION_JSON))
-				.andExpect(status().isOk());
-	}
-
-	@Test
-	public void test_getParentTask_endpoint() throws Exception {
-		given(service.getParentTask()).willReturn(getMockParentTask());
-		this.mockMvc.perform(get("/getParentTask").contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk());
 	}
 
@@ -76,12 +79,12 @@ public class ProjectManagerControllerTest {
 				.andExpect(status().isOk());
 	}
 	@Test
-	public void test_update_addUser_endpoint() throws Exception {
-		given(service.updateUser(getMockUser_forAdd())).willReturn("Success");
-		this.mockMvc.perform(post("/updateUser").contentType(MediaType.APPLICATION_JSON)
-				.content(createModifyUserJson())).andExpect(status().isOk());
+	public void test_getProjectexception() throws Exception {
+		given(service.getProject()).willThrow(new PMToolException("", "", 500));
+		this.mockMvc.perform(get("/getProject").contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_XML)).andExpect(status().is5xxServerError());
 	}
-
+	
 	@Test
 	public void test_update_addProject_endpoint() throws Exception {
 		given(service.updateProject(getMockProject_forAdd())).willReturn("Success");
@@ -110,12 +113,15 @@ public class ProjectManagerControllerTest {
 				.accept(MediaType.APPLICATION_XML)).andExpect(status().is5xxServerError());
 	}
 
+	
 	@Test
-	public void test_getProjectexception() throws Exception {
-		given(service.getProject()).willThrow(new PMToolException("", "", 500));
-		this.mockMvc.perform(get("/getProject").contentType(MediaType.APPLICATION_JSON)
-				.accept(MediaType.APPLICATION_XML)).andExpect(status().is5xxServerError());
+	public void test_getParentTask_endpoint() throws Exception {
+		given(service.getParentTask()).willReturn(getMockParentTask());
+		this.mockMvc.perform(get("/getParentTask").contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk());
 	}
+
+	
 
 	@Test
 	public void test_getParentTaskexception() throws Exception {

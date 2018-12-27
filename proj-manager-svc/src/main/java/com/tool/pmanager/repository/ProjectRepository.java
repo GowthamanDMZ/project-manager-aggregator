@@ -17,10 +17,10 @@ public interface ProjectRepository extends JpaRepository<ProjectComp, Integer> {
 	@Query("from ProjectComp proj where proj.projectId=(:projectId)")
     ProjectComp findByProjectId(@Param("projectId") int projectId);
 	
-	@Query("from ProjectComp proj where proj.userEnt.userId=(:userId)")
-    ProjectComp findByUserId(@Param("userId") int userId);
-	
 	@Modifying
 	@Query(value = "DELETE FROM PROJECT where user_id=(:userId)", nativeQuery = true)
     void deleteByUserId(@Param("userId") int userId);
+	
+	@Query("from ProjectComp proj where proj.userEnt.userId=(:userId)")
+    ProjectComp findByUserId(@Param("userId") int userId);
 }
